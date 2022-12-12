@@ -1,0 +1,1 @@
+A simple PHP error handler
