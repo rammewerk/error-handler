@@ -1,0 +1,23 @@
+{
+  "name": "rammewerk/error-handler",
+  "type": "library",
+  "description": "Simple class to manage PHP errors",
+  "homepage": "https://rammewerk.com",
+  "authors": [
+    {
+      "name": "Kristoffer Follestad",
+      "email": "kristoffer@rammewerk.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Rammewerk\\Component\\ErrorHandler\\": ""
+    },
+    "exclude-from-classmap": [
+      "/Tests/"
+    ]
+  },
+  "require": {
+    "php": "8.2"
+  }
+}
