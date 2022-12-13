@@ -3,6 +3,7 @@
   "type": "library",
   "description": "Simple class to manage PHP errors",
   "homepage": "https://rammewerk.com",
+  "license": "MIT",
   "authors": [
     {
       "name": "Kristoffer Follestad",
@@ -18,6 +19,6 @@
     ]
   },
   "require": {
-    "php": "8.2"
+    "php": ">=8.2"
   }
 }

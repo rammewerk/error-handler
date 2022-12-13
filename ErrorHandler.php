@@ -5,6 +5,7 @@ namespace Rammewerk\Component\ErrorHandler;
 use Closure;
 use Throwable;
 use ErrorException;
+use JetBrains\PhpStorm\Pure;
 use JetBrains\PhpStorm\NoReturn;
 
 class ErrorHandler {
@@ -26,6 +27,7 @@ class ErrorHandler {
      */
     public function __construct() {
         error_reporting( E_ALL );
+        ini_set( 'display_errors', 'Off' );
         set_error_handler( [ $this, 'handleError' ], E_ALL );
         set_exception_handler( [ $this, 'handleException' ] );
         register_shutdown_function( [ $this, 'handleShutdown' ] );
@@ -35,10 +37,21 @@ class ErrorHandler {
 
 
     /**
-     * Activate Debug Mode
+     * Handle an uncaught exception from the application.
+     *
+     * @param \Throwable $e
      */
-    public function display_errors(): void {
-        ini_set( 'display_errors', 'On' );
+    #[NoReturn] public function handleException(Throwable $e): void {
+
+        foreach( $this->logCallbacks as $callback ) {
+            $callback( $e );
+        }
+
+        foreach( $this->reportCallbacks as $callback ) {
+            $callback( $e );
+        }
+
+        die;
     }
 
 
@@ -58,35 +71,6 @@ class ErrorHandler {
         if( $level && error_reporting() ) {
             throw new ErrorException( $message, 0, $level, $file, $line );
         }
-    }
-
-
-
-
-    /**
-     * Handle an uncaught exception from the application.
-     *
-     * @param \Throwable $e
-     */
-    #[NoReturn] public function handleException(Throwable $e): void {
-
-        foreach( $this->logCallbacks as $callback ) {
-            $callback( $e );
-        }
-
-        if( empty( $this->reportCallbacks ) ) {
-            echo '<h1>' . $e->getMessage() . '</h1>';
-            echo '<pre>';
-            /** @noinspection ForgottenDebugOutputInspection */
-            var_export( $e );
-            echo '</pre>';
-            die;
-        }
-
-        foreach( $this->reportCallbacks as $callback ) {
-            $callback( $e );
-        }
-        die;
     }
 
 
@@ -125,7 +109,7 @@ class ErrorHandler {
      *
      * @return \ErrorException
      */
-    private function fatalExceptionFromError(array $error): ErrorException {
+    #[Pure] private function fatalExceptionFromError(array $error): ErrorException {
         return new ErrorException( $error['message'], $error['type'], 0, $error['file'], $error['line'] );
     }
 
@@ -136,10 +120,12 @@ class ErrorHandler {
      * Register the exception handling callbacks for the application.
      *
      * @param \Closure $closure
+     * @param bool $reset will reset all previous log closures if set to true
      *
      * @return void
      */
-    public function log(Closure $closure): void {
+    public function log(Closure $closure, bool $reset = false): void {
+        if( $reset ) $this->logCallbacks = [];
         $this->logCallbacks[] = $closure;
     }
 
@@ -150,10 +136,12 @@ class ErrorHandler {
      * Register the exception handling callbacks for the application.
      *
      * @param \Closure $closure
+     * @param bool $reset will reset all previous log closures if set to true
      *
      * @return void
      */
-    public function report(Closure $closure): void {
+    public function report(Closure $closure, bool $reset = false): void {
+        if( $reset ) $this->reportCallbacks = [];
         $this->reportCallbacks[] = $closure;
     }
 
