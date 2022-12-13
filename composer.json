@@ -15,7 +15,8 @@
       "Rammewerk\\Component\\ErrorHandler\\": ""
     },
     "exclude-from-classmap": [
-      "/Tests/"
+      "/Tests/",
+      "/.idea"
     ]
   },
   "require": {
