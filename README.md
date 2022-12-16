@@ -1,11 +1,11 @@
 Rammewerk ErrorHandler
 ======================
 
-A simple customizable error handler for PHP. A good starting point to handle errors and logging.
+A simple error handler for PHP. A great starting point to handle errors in your PHP project.
 
 * PHP errors are turned into exceptions by default.
-* You access the exceptions by defining your own Closures.
-* No other dependencies - small size.
+* You can register multiple closures to handle your errors.
+* No other dependencies - very small size - 1 file only.
 
 Getting Started
 ---------------
@@ -19,30 +19,42 @@ use Rammewerk\Component\ErrorHandler;
 
 $errorHandling = new ErrorHandler();
 
-/** Register a report that should be shown to the user. */
-$errorHandling->report( static function (\Throwable $e) {
-    // Handle the exception that is caught
+$errorHandling->log( static function (\Throwable $e) {
+    # Log your exceptions
 });
 
-/** Log errors */
-$errorHandling->log( static function (\Throwable $e) {
-    // Handle the exception that is caught
+$errorHandling->report( static function (\Throwable $e) {
+    # Show the exception to your user.
 });
 ```
+
+_There are basically no difference between the `log` and `report`. The log closures will be called first, then the
+reports. So you can add different log handlers at later point in script, even though the report closures might be used
+to exit PHP._
+
+Why use Rammewerk ErrorHandler?
+---------------
+PHP will either throw exceptions - which are intended to be caught - or print Errors which are generally unrecoverable.
+But instead of having to deal with both exceptions and errors, we convert errors so you only havel to deal
+with exceptions. No more `@file_get_contents` just nice and neat try/catch.
+
+Uncaught exceptions will be given to your `log` and `report` closures.
+
+Many other frameworks or libraries are way more advanced, and comes with loads of functions. This ErrorHandler is simple
+by design - you decide how to handle your uncaught exceptions and errors.
 
 Tips
 ---------------
 
 * Add the ErrorHandler class as early in your application as possible.
-* Add `log` and `report` closure at any point you want, but the `ErrorHandler` will only call these if the error or
-  exception
-  occurred after the registered closure. So, consider adding a `log` closure as soon as possible.
+* Add `log` and `report` closure at any point you want. The `ErrorHandler` will only call these closures if the
+  exception occurred after the registered closure. So, consider adding a `log` closure as soon as possible.
 * You can add multiple closures. `log` closures will be called before `report` closures.
-* If you want to reset previous registered closures the `log` and `report` set the seconds argument as true.
-  Example: `->log( $closure, true )`. This can be useful if you want to replace logging after calling other dependencies
-  at a later point in your scripts.
+* If you want to reset previous registered closures - set the second argument as true in `log` or `report`.
+  Example: `$error->log( $closure, true )`. This can be useful if you want to replace logging after calling other
+  dependencies at a later point in your scripts.
 
-Examples
+Example
 ---------------
 
 ```php
@@ -52,38 +64,25 @@ CONST DEBUG_MODE = true;
 
 $errorHandling = new ErrorHandler();
 
-/** Log exceptions to JSON file */
+/** Log latest exception to JSON file */
 $errorHandling->log( static function (\Throwable $e) {
-  file_put_contents( 'latest_error.json', json_encode([
-    'message' => $e->getMessage(),
-    'file'    => $e->getFile(),
-    'line'    => $e->getLine(),
-    'trace'   => $e->getTrace()
-  ], JSON_PRETTY_PRINT ));
+  file_put_contents( 'latest_error.json', json_encode($e->getMessage()) );
 });
 
-/** Show exceptions if DEBUG_MODE is set */
-if( DEBUG_MODE ) {
+/** Show default 500 error page */
+$errorHandling->report( static function () {
+    http_response_code( 500 );
+    echo file_get_contents( "errors/500.html" );
+    die;
+} );
 
-    /** Use filp/whoops to show errors if it does exist */
-    if( class_exists( \Whoops\Run::class ) ) {
-        $errorHandling->report( function (\Throwable $e) {
-            $whoops = new \Whoops\Run();
-            $handler = new \Whoops\Handler\PrettyPageHandler();
-            $whoops->pushHandler( $handler );
-            $whoops->handleException( $e );
-            die;
-        } );
-    }
-
-} else {
-
-    /** Show default 500 error page if not debug mode */
-    $errorHandling->report( static function () {
-        http_response_code( 500 );
-        echo file_get_contents( ROOT_DIR . "templates/errors/500.html" );
-        die;
-    } );
-
+/** Show error details if DEBUG_MODE */
+if( DEBUG_MODE ) { 
+  # Notice that the second argument is set to true - to remove previously registered report closures.
+  $errorHandling->report( function (\Throwable $e) {
+      $debug = new \MyCustomDebugClass();
+      $debug->exception($e);
+      die;
+  }, true );
 }
 ```
