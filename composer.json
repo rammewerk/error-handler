@@ -1,9 +1,13 @@
 {
   "name": "rammewerk/error-handler",
   "type": "library",
-  "description": "Simple class to manage PHP errors",
+  "description": "Simple class to manage and normalize PHP errors",
   "homepage": "https://rammewerk.com",
   "license": "MIT",
+  "keywords": [
+    "error-handler",
+    "exceptions"
+  ],
   "authors": [
     {
       "name": "Kristoffer Follestad",
@@ -12,12 +16,17 @@
   ],
   "autoload": {
     "psr-4": {
-      "Rammewerk\\Component\\ErrorHandler\\": ""
+      "Rammewerk\\Component\\ErrorHandler\\": "src"
     },
     "exclude-from-classmap": [
-      "/Tests/",
+      "/tests/",
       "/.idea"
     ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Rammewerk\\Component\\ErrorHandler\\Tests\\": "tests/"
+    }
   },
   "require": {
     "php": ">=8.2"
