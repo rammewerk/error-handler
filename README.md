@@ -34,9 +34,6 @@ $errorHandling->report( static function (\Throwable $e) {
     # Show the exception to your user.
 });
 
-// Use the helper-function to log exceptions to a JSONL file.
-$errorHandling->registerJsonl('/path/to/your/logfile.jsonl');
-
 ```
 
 _There are basically no difference between the `log` and `report`. Log closures will be called first, then the
@@ -116,52 +113,4 @@ $errorHandling->report( function (\Throwable $e) {
         die('MyCustomException was thrown');
     }
   } );
-```
-
-Helper function to store exceptions to JSON Line file.
----------------
-
-The author of this component likes to log exceptions to JSONL and has therefore added two helper-functions for this.
-These methods offer a streamlined approach for capturing and storing exception data in a structured, easily parsable
-format. Use them if you'd like.
-
-You can read more about JSON Line format here - https://www.atatus.com/glossary/jsonl/
-
-#### Log uncaught exceptions to JSONL
-
-```php 
-$errorHandler->registerJsonl('/path/to/your/logfile.jsonl');
-```
-
-The `registerJsonl` function is designed to simplify the process of logging uncaught exceptions to a JSON Lines (JSONL)
-file. This function does two things. First it will try to create the directory where JSONL file is stored, or fail if
-not
-able to create the directory. Then it will register logging of uncaught errors with use of the
-internal `saveExceptionToJsonL` method (see more below).
-
-#### Store exception to JSONL file
-
-```php
-$errorHandler->saveExceptionToJsonL($exception, '/path/to/your/logfile.jsonl');
-```
-
-The `saveExceptionToJsonL` method is a utility function used by registerJsonl to log exceptions into a JSON Lines file.
-This method is typically not called directly, but can be a great extension if you want to log exceptions that are
-caught. Here's an example:
-
-```php
-# In your bootstrap file
-function exception_log( \Throwable $e): ?int {
-    // Logic to create dir if not found...
-    return $errorHandler->saveExceptionToJsonL($e, EXCEPTION_LOG_JSONL );
-}
-
-# Somewhere in your app
-try {
-    // Some implemented code
-} catch( \Exception $e ) {
-    $line = exception_log($e) ?? 'NONE';
-    echo "Oops, something bad happened. Please contact support (Log ID: #$line)";
-}
-
 ```

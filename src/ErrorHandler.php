@@ -4,7 +4,6 @@ namespace Rammewerk\Component\ErrorHandler;
 
 use Closure;
 use ErrorException;
-use RuntimeException;
 use Throwable;
 
 class ErrorHandler {
@@ -121,50 +120,5 @@ class ErrorHandler {
         if( $reset ) $this->reportCallback = [];
         $this->reportCallback[] = $closure;
     }
-
-    /**
-     * Register exception logging to JSON Line file.
-     * A simple helper function to register all uncaught exceptions to a JSON Line file.
-     * Registers the saveExceptionToJsonL() function to log que.
-     *
-     * @param string $file_path Path to the JSON Lines file.
-     * @return void
-     * @throws RuntimeException If the directory for the JSON Lines file cannot be created.
-     */
-    public function registerJsonl(string $file_path): void {
-        $dir = dirname( $file_path );
-        if( !is_dir( $dir ) && !mkdir( $dir, 0755, true ) && !is_dir( $dir ) ) {
-            throw new RuntimeException( sprintf( 'Jsonl Log directory "%s" was not created', $dir ) );
-        }
-        $this->log( fn(Throwable $e) => $this->saveExceptionToJsonL( $e, $file_path ) );
-    }
-
-    /**
-     *  Saves an exception to a JSON Lines file.
-     *  Logs exception details including timestamp, class, message, file, line, and request URI.
-     *
-     * @param Throwable $e The exception to log
-     * @param string $path Path to the JSONL file
-     * @return int|null Returns the line-number of which the log was added, or null if it failed to save log.
-     */
-    public function saveExceptionToJsonL(Throwable $e, string $path): ?int {
-        try {
-            if( file_put_contents( $path, json_encode( [
-                    'date' => date( 'Y-m-d H:i:s' ),
-                    'class' => get_class( $e ),
-                    'message' => $e->getMessage(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'request_uri' => $_SERVER['REQUEST_URI'] ?? ''
-                ], JSON_THROW_ON_ERROR ) . PHP_EOL, FILE_APPEND ) ) {
-                /** @phpstan-ignore-next-line */
-                return count( file( $path ) );
-            }
-        } catch( Throwable ) {
-            // Silence!
-        }
-        return null;
-    }
-
 
 }

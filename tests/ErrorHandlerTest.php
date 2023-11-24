@@ -49,35 +49,6 @@ class ErrorHandlerTest extends TestCase {
     }
 
 
-    public function testLogToJsonl(): void {
-        // Assert that dir has been deleted if exist
-        $dir = __DIR__ . '/testDir/';
-        $file_path = $dir . 'test.jsonl';
-
-        // Delete the file if it exists.
-        if( is_file( $file_path ) && !unlink( $file_path ) ) {
-            throw new LogicException( "Failed to delete file: $file_path" );
-        }
-
-        // Attempt to remove the directory.
-        if( is_dir( $dir ) && !rmdir( $dir ) ) {
-            throw new LogicException( "Failed to delete directory: $dir" );
-        }
-
-        $this->assertDirectoryDoesNotExist( $dir );
-
-        // Register log
-        $errorHandler = new ErrorHandler();
-        $errorHandler->registerJsonl( $file_path );
-        // Make sure dir now exists
-        $this->assertDirectoryExists( $dir );
-        $testException = new \RuntimeException( "Test Exception" );
-        $errorHandler->handleException( $testException );
-        $this->assertFileExists( $file_path );
-        $content = file_get_contents( $file_path );
-        $this->assertStringContainsString( "Test Exception", $content );
-    }
-
     public function testHandleError() {
         $errorHandler = new ErrorHandler();
         $this->expectException( \ErrorException::class );
