@@ -2,15 +2,20 @@
 
 namespace Rammewerk\Component\ErrorHandler\Tests;
 
+use Closure;
+use ErrorException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use Rammewerk\Component\ErrorHandler\ErrorHandler;
+use ReflectionClass;
+use RuntimeException;
+use Throwable;
 
 class ErrorHandlerTest extends TestCase {
 
     public function testHandleExceptionCallsLogAndReportCallbacks(): void {
         $errorHandler = new ErrorHandler();
-        $testException = new \RuntimeException( "Test Exception" );
+        $testException = new RuntimeException( "Test Exception" );
 
         // Registering callbacks
         $errorHandler->log( $this->createCallbackMock() );
@@ -23,8 +28,8 @@ class ErrorHandlerTest extends TestCase {
         $errorHandler->handleException( $testException );
     }
 
-    private function createCallbackMock(): \Closure {
-        return static function(\Throwable $e): void {
+    private function createCallbackMock(): Closure {
+        return static function(Throwable $e): void {
             echo $e->getMessage();
         };
     }
@@ -32,7 +37,7 @@ class ErrorHandlerTest extends TestCase {
     public function testGeneratingLog(): void {
         // Set up and reflection
         $errorHandler = new ErrorHandler();
-        $reflection = new \ReflectionClass( $errorHandler );
+        $reflection = new ReflectionClass( $errorHandler );
         $property_log = $reflection->getProperty( 'logCallbacks' );
         # Register log and assert count
         $errorHandler->log( $this->createCallbackMock() );
@@ -49,9 +54,9 @@ class ErrorHandlerTest extends TestCase {
     }
 
 
-    public function testHandleError() {
+    public function testHandleError(): void {
         $errorHandler = new ErrorHandler();
-        $this->expectException( \ErrorException::class );
+        $this->expectException( ErrorException::class );
         $errorHandler->handleError( E_WARNING, 'Test error', 'test.php', 123 );
     }
 

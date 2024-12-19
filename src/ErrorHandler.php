@@ -21,7 +21,7 @@ class ErrorHandler {
     public function __construct() {
         error_reporting( E_ALL );
         ini_set( 'display_errors', 'Off' );
-        set_error_handler( [$this, 'handleError'], E_ALL );
+        set_error_handler( [$this, 'handleError'] );
         set_exception_handler( [$this, 'handleException'] );
         register_shutdown_function( [$this, 'handleShutdown'] );
     }
